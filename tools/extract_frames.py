@@ -94,6 +94,8 @@ def build_filters(args) -> str:
     parts = []
     if args.scene is not None:
         parts.append(f"select='gt(scene,{args.scene})'")
+    elif args.every:
+        parts.append(f"select='not(mod(n\\,{args.every}))'")
     else:
         parts.append(f"fps={args.fps}")
     if args.max_size > 0:
@@ -123,8 +125,13 @@ def extract_one(ffmpeg: str, ffprobe: str, video: str, out_dir: str, args) -> li
 
     if args.dry_run:
         dur = probe_duration(ffprobe, video)
-        rate = "scene-based" if args.scene is not None else f"{args.fps} fps"
-        est = "-" if args.scene is not None else (f"~{int(dur * args.fps)}" if dur else "?")
+        if args.scene is not None:
+            rate, est = "scene-based", "-"
+        elif args.every:
+            rate, est = f"1 of every {args.every} frames", "-"
+        else:
+            rate = f"{args.fps} fps"
+            est = f"~{int(dur * args.fps)}" if dur else "?"
         print(f"[dry-run] {video}: {rate}, est. {est} frames -> {out_dir}/{args.prefix}_%06d.{ext}")
         return []
 
@@ -148,6 +155,8 @@ def main() -> int:
     ap.add_argument("input", help="video file OR a folder of videos")
     ap.add_argument("out", help="output dataset folder")
     ap.add_argument("--fps", type=float, default=1.0, help="frames per second (default 1)")
+    ap.add_argument("--every", type=int, default=None,
+                    help="keep 1 out of every N source frames (overrides --fps; ignores frame rate)")
     ap.add_argument("--scene", type=float, default=None,
                     help="use scene-change detection instead of fps (e.g. 0.3; lower = more frames)")
     ap.add_argument("--max-frames", type=int, default=0, help="cap total frames per video (0 = no cap)")
@@ -182,7 +191,12 @@ def main() -> int:
 
     os.makedirs(args.out, exist_ok=True)
     multi = len(videos) > 1
-    rate = f"scene>{args.scene}" if args.scene is not None else f"{args.fps} fps"
+    if args.scene is not None:
+        rate = f"scene>{args.scene}"
+    elif args.every:
+        rate = f"1 of every {args.every} frames"
+    else:
+        rate = f"{args.fps} fps"
     print(f"Extracting at {rate} -> {args.out}  ({'dry-run' if args.dry_run else 'writing'})")
 
     total = 0
