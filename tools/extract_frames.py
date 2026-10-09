@@ -29,6 +29,7 @@ Requires: ffmpeg + ffprobe on PATH. Pure stdlib otherwise.
 import argparse
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -62,6 +63,19 @@ def tool(name: str) -> str:
     if not path:
         sys.exit(f"error: '{name}' not found on PATH. Install ffmpeg first.")
     return path
+
+
+def vfr_args(ffmpeg: str) -> list[str]:
+    """ffmpeg 8+ removed -vsync in favour of -fps_mode; older builds only know -vsync."""
+    try:
+        out = subprocess.run([ffmpeg, "-version"], capture_output=True, text=True).stdout
+    except Exception:
+        out = ""
+    m = re.search(r"ffmpeg version n?(\d+)", out)
+    major = int(m.group(1)) if m else None
+    if major is not None and major >= 8:
+        return ["-fps_mode", "vfr"]
+    return ["-vsync", "vfr"]
 
 
 def probe_duration(ffprobe: str, video: str) -> float:
@@ -100,7 +114,7 @@ def extract_one(ffmpeg: str, ffprobe: str, video: str, out_dir: str, args) -> li
         cmd += ["-ss", args.start]
     if args.end:
         cmd += ["-to", args.end]
-    cmd += ["-i", video, "-vf", build_filters(args), "-vsync", "vfr"]
+    cmd += ["-i", video, "-vf", build_filters(args)] + vfr_args(ffmpeg)
     if args.max_frames > 0:
         cmd += ["-frames:v", str(args.max_frames)]
     if ext == "jpg":
