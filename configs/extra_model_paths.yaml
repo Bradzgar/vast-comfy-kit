@@ -1,0 +1,23 @@
+# Template: extra_model_paths.yaml for ComfyUI on a vast.ai instance.
+# setup-comfy.sh generates this automatically into <ComfyUI>/extra_model_paths.yaml.
+# Kept here as a reference / for manual use.
+comfyui:
+    base_path: /workspace/models
+    checkpoints: checkpoints
+    clip: clip
+    clip_vision: clip_vision
+    configs: configs
+    controlnet: controlnet
+    diffusers: diffusers
+    diffusion_models: diffusion_models
+    embeddings: embeddings
+    loras: loras
+    model_patches: model_patches
+    style_models: style_models
+    text_encoders: text_encoders
+    unet: unet
+    upscale_models: upscale_models
+    vae: vae
+    vae_approx: vae_approx
+    sams: sams
+    detection: detection

@@ -1,0 +1,11 @@
+# Secrets
+env
+
+# Runtime caches / logs
+*.log
+*.part
+__pycache__/
+*.pyc
+
+# Keep the resolved Civitai lockfile committable; ignore local runs of nothing else.
+!manifests/civitai_lock.json

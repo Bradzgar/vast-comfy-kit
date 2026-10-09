@@ -1,0 +1,29 @@
+# ComfyUI custom nodes to install.
+# Format: <git-url> [ref] [dirname]   -- use "-" to skip ref or dirname.
+# Leave ref as "-" to track the default branch (a custom_nodes.lock is written after install).
+#
+# Core manager (install first)
+https://github.com/ltdrdata/ComfyUI-Manager.git
+#
+# Your installed nodes (mirrored from Z:\ComfyUI\custom_nodes)
+https://github.com/chrisgoringe/cg-use-everywhere.git
+https://github.com/chflame163/ComfyUI_LayerStyle.git - comfyui_layerstyle
+https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git - comfyui-custom-scripts
+https://github.com/yolain/ComfyUI-Easy-Use.git - comfyui-easy-use
+https://github.com/city96/ComfyUI-GGUF.git - ComfyUI-GGUF
+https://github.com/alexopus/ComfyUI-Image-Saver.git - comfyui-image-saver
+https://github.com/ltdrdata/ComfyUI-Impact-Pack.git - comfyui-impact-pack
+https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git - comfyui-impact-subpack
+https://github.com/kijai/ComfyUI-KJNodes.git - comfyui-kjnodes
+https://github.com/capitan01R/ComfyUI-Krea2T-Enhancer.git - ComfyUI-Krea2T-Enhancer
+https://github.com/willmiao/ComfyUI-Lora-Manager.git - ComfyUI-Lora-Manager
+https://github.com/Azornes/Comfyui-Resolution-Master.git - Comfyui-Resolution-Master
+https://github.com/PGCRT/CRT-Nodes.git - crt-nodes
+https://github.com/ClownsharkBatwing/RES4LYF.git - RES4LYF
+https://github.com/rgthree/rgthree-comfy.git - rgthree-comfy
+https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git - seedvr2_videoupscaler
+https://github.com/WASasquatch/was-node-suite-comfyui.git - was-node-suite-comfyui
+#
+# NOTE: your local machine also had `was-ns` (a duplicate WAS suite) and some
+# nodes under a `.disabled\` folder. Duplicates/disabled nodes are intentionally
+# omitted. To pin a specific revision, replace "-" with a tag/branch/sha.
