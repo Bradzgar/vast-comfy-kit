@@ -214,12 +214,31 @@ bash setup-toolkit.sh      # Ostris AI Toolkit
 bash download-models.sh    # fetch missing models (idempotent)
 ```
 
-Restart ComfyUI:
+Restart ComfyUI (and the desktop) after a `vastai start instance`:
 
 ```bash
-tmux kill-session -t comfy 2>/dev/null
-tmux new-session -d -s comfy "cd /workspace/ComfyUI && /workspace/venvs/comfy/bin/python main.py --listen 0.0.0.0 --port 8188 2>&1 | tee -a /workspace/comfy.log"
+bash /workspace/vast-comfy-kit/start.sh             # ComfyUI only
+bash /workspace/vast-comfy-kit/start.sh --desktop   # ComfyUI + remote desktop
 ```
+
+> vast.ai's on-start script only runs at instance **creation**, not on `start`. So run
+> `start.sh` (or add it to a login shell) every time you resume a stopped instance.
+
+### Remote desktop (optional)
+
+`start-desktop.sh` runs a lightweight **XFCE** desktop behind **TigerVNC + noVNC**, bound to
+localhost and reached through the SSH tunnel — nothing is exposed publicly.
+
+```bash
+bash /workspace/vast-comfy-kit/setup-desktop.sh   # one-time install
+bash /workspace/vast-comfy-kit/start-desktop.sh   # start/restart it
+```
+
+Add to your `~/.ssh/config` under the host: `LocalForward 6080 localhost:6080`, then open
+**http://localhost:6080/vnc.html**. (No VNC password — it's localhost-only + tunneled; keep the
+SSH session open or use VS Code Remote-SSH.)
+
+To have the desktop auto-install on a fresh boot, set `DESKTOP=1` in `env`.
 
 ---
 
@@ -280,6 +299,11 @@ vast-comfy-kit/
 ├── setup-nodes.sh          # custom nodes from manifests/custom_nodes.txt
 ├── setup-toolkit.sh        # Ostris AI Toolkit + Krea2 training config
 ├── download-models.sh      # fetch models (HF + Civitai lockfile), resume-friendly
+├── start.sh                # bring services up after `vastai start` (--desktop optional)
+├── start-comfy.sh          # start ComfyUI in tmux
+├── setup-desktop.sh        # install XFCE + VNC + noVNC (one-time)
+├── start-desktop.sh        # start/restart the remote desktop
+├── tools/extract_frames.py # local: video -> dataset frames + caption stubs
 ├── resolve-civitai.py      # run LOCALLY: hash -> Civitai API -> lockfile
 ├── env.example             # copy to env; holds tokens + options
 ├── manifests/
