@@ -9,3 +9,6 @@ __pycache__/
 
 # Keep the resolved Civitai lockfile committable; ignore local runs of nothing else.
 !manifests/civitai_lock.json
+
+# Locally generated datasets (video frames) - never commit
+tools/datasets/
