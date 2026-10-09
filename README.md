@@ -87,36 +87,62 @@ are fast and cheap — only the GPU is billed while running.
 
 ---
 
-## 3. Create the instance
+## 3. Create a reusable template (once)
+
+Every vast.ai instance must use a template. **Do not use the ready-made ComfyUI template** — it
+ships its own install/onstart that conflicts with this kit. Make your own once.
+
+**Web UI:** Templates → **New template**
+- **Name:** `vast-comfy-kit`
+- **Image:** `pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel`
+- **Launch mode:** SSH (direct)
+- **Disk:** 60 GB
+- **Docker options / ports:** `-p 8188:8188`
+- **On-start script:**
+  ```bash
+  if [ ! -d /workspace/vast-comfy-kit/.git ]; then
+    git clone https://$GITHUB_PAT@github.com/Bradzgar/vast-comfy-kit.git /workspace/vast-comfy-kit
+  fi
+  bash /workspace/vast-comfy-kit/onstart.sh
+  exec sleep infinity
+  ```
+
+**CLI equivalent:**
+
+```bash
+vastai create template --name vast-comfy-kit \
+  --image pytorch/pytorch --image_tag 2.8.0-cuda12.8-cudnn9-devel \
+  --disk_space 60 --ssh --direct \
+  --env '-p 8188:8188' \
+  --onstart-cmd $'if [ ! -d /workspace/vast-comfy-kit/.git ]; then\n  git clone https://$GITHUB_PAT@github.com/Bradzgar/vast-comfy-kit.git /workspace/vast-comfy-kit\nfi\nbash /workspace/vast-comfy-kit/onstart.sh\nexec sleep infinity'
+```
+
+The `$GITHUB_PAT` is expanded at boot from an **instance env var**, so no secret is stored in the
+template. When you launch an instance you select this template, then set the volume, GPU, and env
+vars (below). The template handles everything else every time you reuse it.
+
+---
+
+## 3b. Create the instance
 
 In the vast.ai UI (or CLI). Key fields:
 
 | Field | Value |
 |---|---|
-| Image | A CUDA **12.8+ / 13.x** PyTorch image. For 24 GB+ cards an `nvidia/cuda:12.8.1-devel-ubuntu22.04`-style base works; PyTorch is installed by the kit. |
+| Template | `vast-comfy-kit` (from §3) |
 | GPU | Pick by VRAM: **24 GB** = comfortable Krea 2 inference; **48–80 GB** for fast LoRA training. Blackwell (5090/B200) needs cu130. |
-| Disk | ~60 GB (models go on the volume, not the instance disk) |
+| Disk | ~60 GB (models live on the volume, not the instance disk) |
 | Volume | Attach `comfyvol` at `/workspace` |
 | SSH key | Select your existing `vastai.pub` key (already in `~`), or add it under Account → SSH Keys |
-| On-start script | See below |
+| Environment variables | `GITHUB_PAT`, `HF_TOKEN`, `CIVITAI_API_KEY` (and optionally `FETCH_TRAIN_BASE=1`) |
 
-**On-start script:**
+**Environment variables:**
 
-```bash
-bash -c "git clone https://<you>:<PAT>@github.com/<you>/vast-comfy-kit.git /workspace/vast-comfy-kit 2>/dev/null || true; bash /workspace/vast-comfy-kit/onstart.sh; exec sleep infinity"
 ```
-
-- For a **public** repo drop the `<you>:<PAT>@` part.
-- `exec sleep infinity` keeps the container alive after setup finishes.
-- On a **fresh** volume this installs everything and downloads models (20–60 min).
-  On a **warm** volume it just verifies and starts ComfyUI (seconds).
-
-CLI example (edit to taste):
-
-```bash
-vastai create instance <OFFER_ID> --image <IMAGE> --disk 60 \
-  --onstart-cmd 'bash -c "git clone <REPO> /workspace/vast-comfy-kit; bash /workspace/vast-comfy-kit/onstart.sh; exec sleep infinity"' \
-  --env '-p 8188:8188' --ssh --direct
+GITHUB_PAT=<fine-grained read-only PAT for the kit repo>
+HF_TOKEN=<your HF token>
+CIVITAI_API_KEY=<your Civitai key>
+FETCH_TRAIN_BASE=1        # optional: also pull the ~25GB Krea-2-Raw base for training
 ```
 
 ---
