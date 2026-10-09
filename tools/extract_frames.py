@@ -92,11 +92,18 @@ def probe_duration(ffprobe: str, video: str) -> float:
 
 def build_filters(args) -> str:
     parts = []
+    conds = []
+    if args.start_frame:
+        conds.append(f"gte(n\\,{args.start_frame})")
     if args.scene is not None:
-        parts.append(f"select='gt(scene,{args.scene})'")
+        conds.append(f"gt(scene,{args.scene})")
+        parts.append("select='" + "*".join(conds) + "'")
     elif args.every:
-        parts.append(f"select='not(mod(n\\,{args.every}))'")
+        conds.append(f"not(mod(n\\,{args.every}))")
+        parts.append("select='" + "*".join(conds) + "'")
     else:
+        if args.start_frame:
+            print("  note: --start-frame needs --every or --scene; for fps use --start (timestamp)")
         parts.append(f"fps={args.fps}")
     if args.max_size > 0:
         m = args.max_size
@@ -156,7 +163,9 @@ def main() -> int:
     ap.add_argument("out", help="output dataset folder")
     ap.add_argument("--fps", type=float, default=1.0, help="frames per second (default 1)")
     ap.add_argument("--every", type=int, default=None,
-                    help="keep 1 out of every N source frames (overrides --fps; ignores frame rate)")
+                     help="keep 1 out of every N source frames (overrides --fps; ignores frame rate)")
+    ap.add_argument("--start-frame", type=int, default=None,
+                     help="skip source frames before this index (use with --every or --scene)")
     ap.add_argument("--scene", type=float, default=None,
                     help="use scene-change detection instead of fps (e.g. 0.3; lower = more frames)")
     ap.add_argument("--max-frames", type=int, default=0, help="cap total frames per video (0 = no cap)")
