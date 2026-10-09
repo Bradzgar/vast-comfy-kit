@@ -37,17 +37,11 @@ bash "$KIT_DIR/setup-nodes.sh"   || warn "setup-nodes had errors"
 bash "$KIT_DIR/setup-toolkit.sh" || warn "setup-toolkit had errors"
 bash "$KIT_DIR/download-models.sh" || warn "download-models had errors (re-run later)"
 
-# 3) Start ComfyUI in tmux (survives SSH disconnects).
-if have tmux; then
-  if ! tmux has-session -t comfy 2>/dev/null; then
-    log "starting ComfyUI in tmux session 'comfy' (port $COMFY_PORT)"
-    tmux new-session -d -s comfy \
-      "cd '$COMFY_DIR' && '$VENV_COMFY/bin/python' main.py --listen 0.0.0.0 --port $COMFY_PORT 2>&1 | tee -a '$WORKSPACE/comfy.log'"
-  else
-    log "tmux session 'comfy' already running"
-  fi
-else
-  warn "tmux not found; start ComfyUI manually: cd $COMFY_DIR && $VENV_COMFY/bin/python main.py --listen 0.0.0.0 --port $COMFY_PORT"
+# 3) Start services (ComfyUI, and optionally the remote desktop).
+bash "$KIT_DIR/start-comfy.sh" || warn "start-comfy failed"
+if [[ "${DESKTOP:-0}" == "1" ]]; then
+  bash "$KIT_DIR/setup-desktop.sh" || warn "setup-desktop failed"
+  bash "$KIT_DIR/start-desktop.sh" || warn "start-desktop failed"
 fi
 
 log "ComfyUI: http://localhost:$COMFY_PORT  (tunnel: ssh -L $COMFY_PORT:localhost:$COMFY_PORT ...)"
